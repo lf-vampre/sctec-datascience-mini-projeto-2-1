@@ -30,23 +30,38 @@ Utilizando o banco de dados público do Ministério da Saúde que reúne informa
 
 ---
 
+## 🛠️ Tecnologias Utilizadas
+
+* **Formatos de Dados:** CSV / Parquet
+* **Arquitetura de dados:** Medalhão (Bronze, Prata e Ouro)
+* **Modelagem de dados:** Flat Table e Star Schema
+* **Armazenagem:** Google BigQuery (Data Warehouse)
+* **Ambiente:** VS Code / WSL / venv
+* **Linguagem:** Python (Pandas), SQL
+* **Pipeline:** Jupyter Notebook (execução sequencial)
+* **Ferramenta de BI:** Microsoft Power BI
+
+<br>
+
+---
+
 ### 📦 Entregáveis
 
 > O Projeto deverá ser entregue com os seguintes resultados:
 
 <br>
 
-1. - [ ] Uma base consolidada com os arquivos do BPS referentes aos anos de 2020 a 2026
+1. - [x] Uma base consolidada com os arquivos do BPS referentes aos anos de 2020 a 2026
 
-2. - [ ] Um dashboard desenvolvido Microsoft Power BI.
+2. - [x] Um dashboard desenvolvido Microsoft Power BI.
 
-3. - [ ] Um arquivo `README.md` com a documentação do projeto.
+3. - [x] Um arquivo `README.md` com a documentação do projeto.
 
 4. - [ ] Um vídeo de apresentação com duração máxima de 5 minutos.
 
 5. - [ ] A publicação do projeto completo no GitHub (Versionamento com branch e commit).
 
-6. - [ ] Arquivo `.ipynb` em Python (Jupyter Notebook) estruturado com as transformações e análises.
+6. - [x] Arquivo `.ipynb` em Python (Jupyter Notebook) estruturado com as transformações e análises.
 
 <br>
 
@@ -64,7 +79,7 @@ Utilizando o banco de dados público do Ministério da Saúde que reúne informa
 
 - [x] RF03: Sprint 3: Definição das métricas e dos KPIs
 
-- [ ] RF04: Sprint 4: Construção do dashboard
+- [x] RF04: Sprint 4: Construção do dashboard
 
 - [ ] RF05: Sprint 5: Análise dos resultados
 
@@ -168,16 +183,20 @@ As seguintes ações foram aplicadas:
      * `nome_instituicao`: Preenchimento de nulos utilizando o histórico de registros do mesmo `cnpj_instituicao`.
      * `anvisa` e `generico`: Preenchimento de nulos via mapeamento pelo código `codigo_br` (CATMAT).
    * **Padronização de Nulos Residuais:** Atribuição do rótulo `'NÃO INF.'` para colunas categóricas sem histórico e `0` para o código ANVISA ausente. A coluna `capacidade` foi mantida como `NaN` para preservar a integridade estatística.
+   * **Padronização da Coluna `esfera`:** Foram encontrados 4 valores únicos: 'MUNICIPAL', 'ESTADUAL', 'FEDERAL' E '0'. Todos os 43 registros encontrados com o valor '0' foram substituídos por `'NÃO INF.'`. 
 
-2. **Padronização Textual e Normalização de Datas:**
-   * **Padronização de Strings:** Aplicação de caixa alta (`UPPER` - padrão original do banco) e remoção de espaços nas extremidades (`TRIM`) em colunas de texto, preservando a integridade dos nulos.
+2. **Normalização de Datas:**
    * **Formatação Temporal:** Conversão dos campos `compra` e `insercao` para o padrão `datetime64` utilizando o formato explícito brasileiro (`%d/%m/%Y` - padrão dos dados originais).
    * **Correção de Inconsistências de Data:** Aplicação de ***fallback*** para preencher 2.128 `insercao` ausentes com a data de compra e ajuste de 12 registros com data de `insercao` registrada como anterior à `compra`.
 
-3. **Downcasting e Otimização de Memória RAM:**
+3. **Padronização Textual:**
+   * **Limpeza de textos:** Foram encontrados 854 registros na coluna `descricao_catmat` com textos mal formatados contendo código HTML. Todos os campos foram limpos utilizando 'Regex' para reconhecer e remover tags HTML e funções como `html.unescape()` para decodificar entidades, `.replace()` e `re.sub()` para substituir os caracteres mal formatados.
+   * **Padronização de Strings:** Aplicação de caixa alta (`UPPER` - padrão original do banco) e remoção de espaços nas extremidades (`TRIM`) em colunas de texto, preservando a integridade dos nulos.
+
+4. **Downcasting e Otimização de Memória RAM:**
    * **Inteiros:** Redução de precisão para tipos compactos (`ano_compra` para `int16`, `codigo_br` e `qtd_itens_comprados` para `int32`).
    * **Categorização (`category`):** Conversão de 9 colunas string categóricas de baixa/média cardinalidade (`esfera`, `uf`, `generico`, `modalidade_compra`, `tipo_compra`, `unidade_medida`, `unidade_fornecimento`, `unidade_fornecimento_capacidade`, `municipio_instituicao`).
-   * **Resultado de Performance:** Redução do uso de memória RAM de **172 MB para 123.55 MB** (uma otimização de **28.2%** no consumo).
+   * **Resultado de Performance:** Redução do uso de memória RAM de **172 MB para 123 MB** (uma otimização de **28.2%** no consumo).
 
 <br>
 
@@ -283,7 +302,7 @@ Mapeamento de empresas fabricantes.
 * `fabricante`: Nome da indústria fabricante.
 
 
-### 6.4. Salvamento Multi-Formato e Ingestão Cloud no Google BigQuery
+### 6.4. Persistência dos dados Multi-Formato e Ingestão Cloud no Google BigQuery
 
 #### A. Desempenho do Formato Apache Parquet:
 Os datasets da Camada Ouro (Tabela Única) foram salvos (persistidos) nos formatos `.csv`, `.csv.gz` e `.parquet`. A adoção do **Parquet** proporcionou uma **redução de ~88,3% no tamanho do armazenamento** em relação ao CSV tradicional:
@@ -305,6 +324,10 @@ Para simular um ambiente analítico em nuvem de nível corporativo e habilitar c
 * **Tabelas Carregadas:** `fato_compras`, `dim_calendario`, `dim_instituicao`, `dim_produto`, `dim_fornecedor`, `dim_fabricante`.
 * **Modo de Carga:** Ingestão direta dos arquivos `.parquet` com detecção automática de schema.
 * **Integração BI:** O modelo está pronto para consumo via conexão nativa (Import Mode ou DirectQuery) no **Power BI** e/ou **Looker Studio**.
+
+<br>
+
+![BigQuery](./images/bigquery.png)
 
 <br>
 
@@ -365,7 +388,7 @@ Para simular um ambiente analítico em nuvem de nível corporativo e habilitar c
 
 ---
 
-## 8. Link ou imagens do dashboard
+## 8. Link e imagens do dashboard
 
 > 
 
@@ -465,19 +488,6 @@ pip install -r requirements.txt
 5. **Execução do Pipeline:**
 
 * Abra o arquivo `projeto_bps.ipynb` no vscode ou alguma IDE que reconheça `.ipynb`, selecione o kernel do python do ambiente .venv e rode todas as células ou uma a uma para acompanhar o pipeline de dados.
-
-<br>
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-* **Linguagem:** Python (Pandas), SQL
-* **Base de Dados:** csv / parquet
-* **Ambiente:** VS Code / WSL / venv
-* **Orquestração:** Lógica celular em Jupyter Notebook
-* **Ferramenta de BI:** Microsoft Power BI
-
 
 <br>
 
