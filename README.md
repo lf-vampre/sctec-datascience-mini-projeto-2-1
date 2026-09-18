@@ -194,9 +194,9 @@ As seguintes ações foram aplicadas:
    * **Padronização de Strings:** Aplicação de caixa alta (`UPPER` - padrão original do banco) e remoção de espaços nas extremidades (`TRIM`) em colunas de texto, preservando a integridade dos nulos.
 
 4. **Downcasting e Otimização de Memória RAM:**
-   * **Inteiros:** Redução de precisão para tipos compactos (`ano_compra` para `int16`, `codigo_br` e `qtd_itens_comprados` para `int32`).
+   * **Inteiros:** Redução de precisão para tipos compactos (`ano_compra` para `int16` e `codigo_br` para `int32`).
    * **Categorização (`category`):** Conversão de 9 colunas string categóricas de baixa/média cardinalidade (`esfera`, `uf`, `generico`, `modalidade_compra`, `tipo_compra`, `unidade_medida`, `unidade_fornecimento`, `unidade_fornecimento_capacidade`, `municipio_instituicao`).
-   * **Resultado de Performance:** Redução do uso de memória RAM de **172 MB para 123 MB** (uma otimização de **28.2%** no consumo).
+   * **Resultado de Performance:** Redução do uso de memória RAM de **171 MB para 124 MB** (uma otimização de **27.3%** no consumo).
 
 <br>
 
@@ -210,7 +210,7 @@ As seguintes ações foram aplicadas:
 
 ### 6.1. Engenharia de Features e Descarte de Colunas (Pruning)
 
-Para otimizar o consumo de memória RAM, acelerar o processamento analítico e preparar os dados para o consumo nas ferramentas de BI (Power BI/Looker Studio), a Camada Ouro passou por duas ações principais:
+Para otimizar o consumo de memória RAM, acelerar o processamento analítico e preparar os dados para o consumo nas ferramentas de BI (Power BI/Looker Studio), a Camada Ouro passou por quatro ações principais:
 
 1. **Descarte de Colunas Inutilizadas (Pruning):**
    * `insercao`: Descartada por tratar-se de data de controle administrativo interno; as análises temporais negociais baseiam-se 100% na data efetiva de `compra`.
@@ -222,6 +222,17 @@ Para otimizar o consumo de memória RAM, acelerar o processamento analítico e p
    * **Atributos Temporais Enxutos:** Extração dos campos inteiros `nr_ano` (`int16`), `nr_mes` (`int8`), `nr_trimestre` (`int8`) e `nr_dia_semana` (`int8`) a partir do campo `compra`.
    * **Categorização Negocial (`categoria_insumo`):** Criação de flag categórico classificando as aquisições em `'MEDICAMENTO'` (quando `generico != 'NÃO INF.'` ou `anvisa > 0`) e `'CORRELATO'` (para dispositivos, materiais e equipamentos médico-hospitalares).
 
+3. **Sinalização de Qualidade do Dado (`flag_qualidade_dado`):**
+   Auditoria estatística por transação, ao nível de `codigo_br + unidade_fornecimento_capacidade`, para identificar registros com forte indício de erro de digitação, unidade ou preço "sentinela" de sistema. Os critérios (calibrados por análise de crescimento marginal da distribuição real dos dados) são:
+   * **Preço Acima do Padrão:** `preco_unitario` superior a 17,8x a mediana do grupo (p99 da razão transação/mediana).
+   * **Preço Abaixo do Padrão:** `preco_unitario` inferior a 1/28,4 da mediana do grupo (p99 da razão inversa) **ou** `preco_unitario ≤ R$ 0,01` (limiar absoluto definido pelo ponto de menor crescimento marginal na cauda inferior da distribuição de preços).
+   * **Quantidade Extrema:** `qtd_itens_comprados` superior a 24.700.000 unidades (percentil 99,9 da distribuição).
+   
+   Registros que violam mais de um critério recebem motivos concatenados. A flag preserva 100% das linhas (nenhum dado é excluído ou corrigido), permitindo análise segmentada por confiabilidade no dashboard.
+
+4. **Cálculo de Dispersão de Preço (`coeficiente_variacao` e `faixa_dispersao_preco`):**
+   Calculado por grupo de `codigo_br + unidade_fornecimento_capacidade`, utilizando exclusivamente transações classificadas como `Válido` na etapa anterior (evitando contaminação por outliers de qualidade). O Coeficiente de Variação (desvio padrão / preço médio) mede a variação legítima de mercado entre fornecedores, instituições e período. Os limiares de classificação foram definidos pelos quartis da distribuição (grupos com 2 ou mais transações): `Baixa` (CV ≤ 0,23), `Média` (CV entre 0,23 e 0,72) e `Alta` (CV > 0,72). Grupos com apenas 1 transação, ou cujas transações são majoritariamente suspeitas, recebem a classificação `Não Aplicável`, por ausência de base estatística confiável para o cálculo.
+
 
 ### 6.2. Arquitetura da Camada Ouro: Abordagens Implementadas
 
@@ -229,7 +240,7 @@ A Camada Ouro foi estruturada em duas abordagens complementares armazenadas no d
 
 #### A. Abordagem 1: Tabela Única Denormalizada (`df_ouro`)
 
-Como pré-requisito do projeto foi solicitado realizar a preparação e a concatenação das bases em um único conjunto de dados histórico chamado BPS_20_26_NomeDoAluno.csv. Portanto, foi criada uma tabela *Flat* consolidada com 21 colunas estratégicas e as 5 novas colunas calculadas, totalizando 26 colunas. É ideal para explorações rápidas, rotinas ad-hoc de Data Science e cargas em ferramentas que performam melhor com tabelas únicas de média cardinalidade.
+Como pré-requisito do projeto foi solicitado realizar a preparação e a concatenação das bases em um único conjunto de dados histórico chamado BPS_20_26_NomeDoAluno.csv. Portanto, foi criada uma tabela *Flat* consolidada com 21 colunas estratégicas e as 8 novas colunas calculadas, totalizando 29 colunas. É ideal para explorações rápidas, rotinas ad-hoc de Data Science e cargas em ferramentas que performam melhor com tabelas únicas de média cardinalidade.
 
 #### B. Abordagem 2: Modelagem Dimensional (*Star Schema*)
 
@@ -254,7 +265,7 @@ fato_compras
 ### 6.3. Dicionário de Dados do Star Schema
 
 #### 1. Tabela Fato: `fato_compras` (342.697 registros)
-Armazena as métricas quantitativas/financeiras e as chaves estrangeiras (FKs).
+Armazena as métricas quantitativas/financeiras, informações específicas de cada compra e as chaves estrangeiras (FKs).
 * `sk_calendario` (FK): Chave de data no formato `YYYYMMDD` (`int32`).
 * `sk_instituicao` (FK): Chave da instituição compradora (`int32`).
 * `sk_produto` (FK): Chave do produto/insumo (`int32`).
@@ -262,7 +273,12 @@ Armazena as métricas quantitativas/financeiras e as chaves estrangeiras (FKs).
 * `sk_fabricante` (FK): Chave do fabriacnte (`int32`).
 * `modalidade_compra`: Modalidade da aquisição (ex: Pregão, Dispensa) (`category`).
 * `tipo_compra`: Categoria da compra (ex: `ADMINISTRATIVA`, `JUDICIAL`) (`category`).
-* `qtd_itens_comprados`: Quantidade de unidades adquiridas (`int32`).
+* `unidade_fornecimento`, `unidade_fornecimento_capacidade`: Especificações do item da compra.
+* `generico`, `anvisa`: Registros regulatórios sobre o item da compra.
+* `flag_qualidade_dado`: Classificação da transação quanto a indícios de erro de preço ou quantidade, com motivo(s) associado(s) (`Válido`, `Suspeito - Preço Acima do Padrão`, `Suspeito - Preço Abaixo do Padrão`, `Suspeito - Quantidade Extrema`, ou combinações) (`category`).
+* `coeficiente_variacao`: Coeficiente de Variação do preço unitário do grupo produto/apresentação (`codigo_br` + `unidade_fornecimento_capacidade`), calculado sobre transações válidas (`float64`).
+* `faixa_dispersao_preco`: Classificação da dispersão de preço do grupo produto/apresentação (`Baixa`, `Média`, `Alta` ou `Não Aplicável`) (`category`).
+* `qtd_itens_comprados`: Quantidade de unidades adquiridas (`int64`).
 * `preco_unitario`: Preço pago por unidade (`float64`).
 * `preco_total`: Valor total da transação (`float64`).
 
@@ -281,12 +297,11 @@ Cadastro de órgãos e entidades compradoras da saúde pública.
 * `cnpj_instituicao`: CNPJ da instituição.
 * `nome_instituicao`, `esfera`, `municipio_instituicao`, `uf`: Atributos geográficos e administrativos.
 
-#### 4. Dimensão: `dim_produto` (27.559 registros)
+#### 4. Dimensão: `dim_produto` (12.994 registros)
 Catálogo unificado de medicamentos e materiais de saúde (CATMAT).
 * `sk_produto` (PK): Identificador único (`int32`).
 * `codigo_br`: Código do item no CATMAT.
-* `descricao_catmat`, `unidade_fornecimento`, `unidade_fornecimento_capacidade`: Especificações do item.
-* `generico`, `anvisa`: Registros regulatórios.
+* `descricao_catmat`: Descrição do item.
 * `categoria_insumo`: Classificação (`MEDICAMENTO` / `CORRELATO`).
 
 #### 5. Dimensão: `dim_fornecedor` (3.502 registros)
