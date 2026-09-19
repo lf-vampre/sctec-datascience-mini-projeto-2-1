@@ -426,44 +426,58 @@ Para simular um ambiente analítico em nuvem de nível corporativo e habilitar c
 
 ### 8.1. Capa do Dashboard
 
-<br>
+<br> 
+
 ![dashboard-0](./images/dashboard-0.png)
+
 <br>
 
 ### 8.2. Panorama Financeiro e Temporal
 
 <br>
+
 ![dashboard-1](./images/dashboard-1.png)
+
 <br>
 
 ### 8.3. Visão Geográfica e Institucional
 
 <br>
+
 ![dashboard-2](./images/dashboard-2.png)
+
 <br>
 
 ### 8.4. Matriz de Produtos e Dispersão de Preços
 
 <br>
+
 ![dashboard-3](./images/dashboard-3.png)
+
 <br>
 
 ### 8.5. Mercado, Fornecedores e Matriz de Dependências
 
 <br>
+
 ![dashboard-4](./images/dashboard-4.png)
+
 <br>
 
 ### 8.6. Modalidades, Compras Judiciais e Eficiência de Aquisição
 
 <br>
+
 ![dashboard-5](./images/dashboard-5.png)
+
 <br>
 
 ### 8.7. Metodologia e Glossário
 
 <br>
+
 ![dashboard-6](./images/dashboard-6.png)
+
 <br>
 
 ---
