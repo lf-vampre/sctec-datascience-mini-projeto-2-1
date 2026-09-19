@@ -427,43 +427,43 @@ Para simular um ambiente analítico em nuvem de nível corporativo e habilitar c
 ### 8.1. Capa do Dashboard
 
 <br>
-![Logos](./images/dashboard-0.png)
+![dashboard-0](./images/dashboard-0.png)
 <br>
 
 ### 8.2. Panorama Financeiro e Temporal
 
 <br>
-![Logos](./images/dashboard-1.png)
+![dashboard-1](./images/dashboard-1.png)
 <br>
 
 ### 8.3. Visão Geográfica e Institucional
 
 <br>
-![Logos](./images/dashboard-2.png)
+![dashboard-2](./images/dashboard-2.png)
 <br>
 
 ### 8.4. Matriz de Produtos e Dispersão de Preços
 
 <br>
-![Logos](./images/dashboard-3.png)
+![dashboard-3](./images/dashboard-3.png)
 <br>
 
 ### 8.5. Mercado, Fornecedores e Matriz de Dependências
 
 <br>
-![Logos](./images/dashboard-4.png)
+![dashboard-4](./images/dashboard-4.png)
 <br>
 
 ### 8.6. Modalidades, Compras Judiciais e Eficiência de Aquisição
 
 <br>
-![Logos](./images/dashboard-5.png)
+![dashboard-5](./images/dashboard-5.png)
 <br>
 
 ### 8.7. Metodologia e Glossário
 
 <br>
-![Logos](./images/dashboard-6.png)
+![dashboard-6](./images/dashboard-6.png)
 <br>
 
 ---
@@ -474,32 +474,32 @@ Para simular um ambiente analítico em nuvem de nível corporativo e habilitar c
 
 <br>
 
-**9.1. Tratamento e padronização da base bruta**
+- **9.1. Tratamento e padronização da base bruta**
 Antes da modelagem analítica, a base passou por um processo estruturado de limpeza: remoção de duplicidades, imputação determinística de nulos (por histórico de CNPJ e mapeamento por CATMAT), normalização de datas com correção de inconsistências temporais, e padronização textual, incluindo a remoção de código HTML mal formatado presente em 854 descrições de produtos. Esse tratamento garantiu a confiabilidade da base antes de qualquer análise estatística.
 
 <br>
 
-**9.2. Outliers de preço e quantidade como achado analítico**
+- **9.2. Outliers de preço e quantidade como achado analítico**
 A análise identificou transações com preços unitários extremos (tanto "sentinela", próximos de zero, quanto valores muito acima da mediana do próprio produto) e quantidades compradas logisticamente inviáveis. Optou-se por **não excluir ou corrigir** esses registros, preservando a integridade histórica da base, e sim sinalizá-los através da coluna `flag_qualidade_dado`, permitindo análise segmentada (dados válidos vs. suspeitos) diretamente no dashboard.
 
 <br>
 
-**9.3. Critérios de qualidade de dado calibrados estatisticamente**
+- **9.3. Critérios de qualidade de dado calibrados estatisticamente**
 Os limiares de sinalização (preço muito acima ou abaixo da mediana do grupo, preço-piso absoluto e quantidade extrema) não foram definidos de forma arbitrária, mas calibrados a partir da análise de crescimento marginal da distribuição real dos dados, identificando os pontos de ruptura estatística entre variação normal de mercado e valores atípicos.
 
 <br>
 
-**9.4. Dispersão de preço como indicador de oportunidade de negociação**
+- **9.4. Dispersão de preço como indicador de oportunidade de negociação**
 O Coeficiente de Variação, calculado por produto e apresentação (excluindo transações suspeitas), permitiu classificar uma parcela relevante dos produtos como de "Alta" dispersão de preço, sinalizando oportunidades de investigação e negociação para o setor de compras públicas.
 
 <br>
 
-**9.5. Concentração de mercado e risco de dependência**
+- **9.5. Concentração de mercado e risco de dependência**
 A análise de fornecedores identificou produtos adquiridos por um único fornecedor ao longo de todo o histórico da base, representando risco de dependência/monopólio de fornecimento, informação estratégica para negociação e planejamento de contingência.
 
 <br>
 
-**9.6. Diferença de custo entre compras Administrativas e Judiciais**
+- **9.6. Diferença de custo entre compras Administrativas e Judiciais**
 A comparação de preço unitário para os mesmos produtos adquiridos nas duas modalidades evidenciou casos de sobrepreço em compras judiciais, reforçando a importância de monitoramento e planejamento de estoque para reduzir a dependência de aquisições emergenciais via decisão judicial.
 
 <br>
@@ -513,32 +513,32 @@ A comparação de preço unitário para os mesmos produtos adquiridos nas duas m
 
 <br>
 
-**10.1. Priorizar investigação dos produtos de Alta Dispersão de Preço**
+- **10.1. Priorizar investigação dos produtos de Alta Dispersão de Preço**
 Produtos classificados com Coeficiente de Variação "Alta" (Página 3) devem ser priorizados em auditorias de preço e processos de negociação, a variação legítima entre instituições/fornecedores pode indicar oportunidade de padronização de preço-teto ou renegociação de contratos.
 
 <br>
 
-**10.2. Revisar produtos com Fornecedor Único**
+- **10.2. Revisar produtos com Fornecedor Único**
 Produtos identificados com apenas 1 fornecedor ao longo de todo o histórico (Página 4) representam risco de continuidade de abastecimento. Recomenda-se mapear alternativas de fornecimento e avaliar a viabilidade de diversificação, especialmente para os itens de maior volume financeiro.
 
 <br>
 
-**10.3. Reduzir dependência de compras judiciais em itens recorrentes**
+- **10.3. Reduzir dependência de compras judiciais em itens recorrentes**
 Produtos com sobrepreço identificado em compras judiciais frente às administrativas (Página 5) sugerem falhas de planejamento de estoque. Recomenda-se reforçar o planejamento preventivo de aquisição desses itens específicos, reduzindo a necessidade de compras emergenciais via decisão judicial.
 
 <br>
 
-**10.4. Investigar transações sinalizadas como suspeitas**
+- **10.4. Investigar transações sinalizadas como suspeitas**
 Os registros marcados pela `flag_qualidade_dado` (Página 3) não foram confirmados como erro, apenas sinalizados estatisticamente. Recomenda-se auditoria pontual desses casos junto às instituições envolvidas, podendo revelar tanto falhas de digitação quanto padrões reais de negociação a serem investigados.
 
 <br>
 
-**10.5. Acompanhar concentração de mercado entre fornecedores**
+- **10.5. Acompanhar concentração de mercado entre fornecedores**
 O Market Share dos principais fornecedores (Página 4) deve ser monitorado ao longo do tempo, alta concentração pode reduzir o poder de negociação do setor público e aumentar a exposição a variações de preço impostas pelo mercado.
 
 <br>
 
-**10.6. Limitações a considerar**
+- **10.6. Limitações a considerar**
 As recomendações acima devem ser lidas em conjunto com a Página 6 (Metodologia e Glossário), em especial, a classificação de fornecedor único é baseada no histórico total da base (não filtrada por período), e a comparação Judicial vs. Administrativa pode ser influenciada por diferenças na composição de produtos adquiridos em cada modalidade.
 
 <br>
@@ -552,37 +552,37 @@ As recomendações acima devem ser lidas em conjunto com a Página 6 (Metodologi
 
 <br>
 
-**11.1. Dados sinalizados não são necessariamente erros confirmados**
+- **11.1. Dados sinalizados não são necessariamente erros confirmados**
 A `flag_qualidade_dado` é resultado de critérios estatísticos (desvio em relação à mediana do grupo, preço-piso e quantidade extrema), não de verificação manual individualizada. Transações sinalizadas como "Suspeito" podem incluir casos legítimos (ex: negociações atípicas, situações emergenciais) que não representam erro de fato.
 
 <br>
 
-**11.2. Comparação Judicial vs. Administrativa sujeita a viés de composição**
+- **11.2. Comparação Judicial vs. Administrativa sujeita a viés de composição**
 A diferença de preço médio entre os dois tipos de compra pode ser influenciada pela diferença na cesta de produtos adquirida em cada modalidade, não exclusivamente pelo tipo de aquisição. A tabela comparativa por produto individual (Página 5) mitiga parcialmente esse viés, mas o KPI executivo agregado deve ser interpretado com essa ressalva.
 
 <br>
 
-**11.3. Classificação de Fornecedor Único é histórica, não filtrada**
+- **11.3. Classificação de Fornecedor Único é histórica, não filtrada**
 A identificação de produtos com apenas 1 fornecedor (Página 4) considera todo o período da base (2020–2026), independentemente dos filtros de ano, UF ou demais recortes aplicados na tela. Um produto marcado como "Fornecedor Único" pode ter tido múltiplos fornecedores em períodos específicos não refletidos nesse indicador.
 
 <br>
 
-**11.4. Coeficiente de Variação depende do volume de transações**
+- **11.4. Coeficiente de Variação depende do volume de transações**
 Produtos com poucas transações (especialmente 1 única compra) não possuem CV estatisticamente confiável, sendo classificados como "Não Aplicável". Isso significa que parte dos ~13 mil produtos do catálogo não possui indicador de dispersão de preço disponível.
 
 <br>
 
-**11.5. Granularidade da Dimensão Produto**
+- **11.5. Granularidade da Dimensão Produto**
 A `dim_produto` utiliza `codigo_br` (CATMAT) como grão, consolidando diferentes apresentações comerciais (embalagens, capacidades) do mesmo item. Análises de preço no nível de apresentação específica (`unidade_fornecimento_capacidade`) estão disponíveis apenas na tabela fato e no painel de detalhe da Página 3, não na visão agregada por produto.
 
 <br>
 
-**11.6. Ausência de correção de outliers**
+- **11.6. Ausência de correção de outliers**
 Nenhum valor de preço ou quantidade identificado como estatisticamente atípico foi alterado, substituído ou removido da base. Isso preserva a integridade histórica dos dados, mas significa que métricas agregadas (como médias simples) podem ser sensíveis a esses valores extremos, por isso a preferência por métricas robustas (mediana, preço médio ponderado) ao longo do dashboard.
 
 <br>
 
-**11.7. Escopo temporal e cobertura**
+- **11.7. Escopo temporal e cobertura**
 A base cobre o período de 2020 a 2026, mas não há garantia de cobertura completa e uniforme de todas as instituições de saúde do país nesse intervalo, instituições podem ter aderido ao sistema de registro em momentos diferentes, afetando comparações históricas absolutas entre períodos.
 
 <br>
