@@ -422,6 +422,8 @@ Para simular um ambiente analítico em nuvem de nível corporativo e habilitar c
 
 4. **Filtros Globais Interativos:** Todos os 5 painéis contarão com slicers para Ano, UF, Modalidade de Compra, Categoria (MEDICAMENTO / CORRELATO) e Busca por CATMAT/Produto.
 
+<br/>
+
 ### Medidas criadas no Power Bi para uso no dashboard
 
 ```
@@ -861,6 +863,36 @@ pip install -r requirements.txt
 
 <br>
 
+3c06ffd (HEAD -> main, origin/main) Atualização do README com as medidas DAX feitas no Power BI.
 
+b3d7017 Correção das imagens na  documentação README.md
+
+6cca09e Correção da documentação README.md
+
+4046906 (origin/feat/bi/dashboard, feat/bi/dashboard) Adição do arquivo dashboard_bps.pbix, imagens da tela do dashboard e atualização do README.
+
+13d251c (origin/fix/etl/tratamento-dados, fix/etl/tratamento-dados) Implementação de flat de qualidade dos dados e campos com coeficiente de variacao e faixa de dispersão de preço. README atualizado
+
+c3ca633 Incluído o tratamento da coluna 'esfera' e correção de textos codificados na coluna 'descricao_catmat'.
+
+b22136e (origin/feat/etl/medalhao-ouro, feat/etl/medalhao-ouro) LOAD. Última fase do ETL, criação dos arquivos das bases, .csv, .csv.gz e .parquet. Atualização do README.md com item 6.
+
+9dc914a Criação da Camada Ouro. Seleção de colunas e Engenharia de Features. Duas abordagens, tabela única denormalizada e Star Schema.
+
+e7bd41e Definição de regras de negócio, KPIs e pilares Analíticos/Estratégicos. Atualização item 7 do README.md
+
+4cdf928 (origin/feat/etl/medalhao-prata, feat/etl/medalhao-prata) Verificação de inconsistência, tratamento, limpeza, preenchimento de nulos, otimização dos dados. README.md atualizado itens 4 e 5.
+
+70567f8 Início camada Prata. Concatenação das bases e verificação de nulos e duplicados.
+
+0302dcf (origin/feat/etl/medalhao-bronze, feat/etl/medalhao-bronze) Auditoria das bases camada bronze. Atualização README.md e criação do requirements.txt
+
+b9d13ba (origin/feat/setup/estrutura-projeto, feat/setup/estrutura-projeto) Criado arquivo projeto_bps.ipynb para realização da ETL.
+
+a5ef6c9 Estrutura inicial das pastas dos dados. README.md atualizado nos itens 1, 2 e 3.
+
+b7cbb67 Início do repositório. Estrutura inicial do README.md e .gitignore. Dados brutos na pasta /dados/raw
+
+9d9192a Criação do repositório.
 
 <br>
