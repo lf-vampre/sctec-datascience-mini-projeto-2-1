@@ -269,6 +269,14 @@ fato_compras
 └─── sk_fornecedor ──── N:1 ─── dim_fornecedor
 ```
 
+<br>
+
+![StarSchema](./images/star_schema.png)
+
+<br>
+
+
+
 ### 6.3. Dicionário de Dados do Star Schema
 
 #### 1. Tabela Fato: `fato_compras` (342.697 registros)
@@ -413,6 +421,195 @@ Para simular um ambiente analítico em nuvem de nível corporativo e habilitar c
 3. **Contagem Distinta:** Para CNPJs (Instituição, Fornecedor, Fabricante), CATMAT (codigo_br), UFs e Municípios.
 
 4. **Filtros Globais Interativos:** Todos os 5 painéis contarão com slicers para Ano, UF, Modalidade de Compra, Categoria (MEDICAMENTO / CORRELATO) e Busca por CATMAT/Produto.
+
+### Medidas criadas no Power Bi para uso no dashboard
+
+```
+%_do_Total_Tabela = 
+VAR ValorAtual = [Total_Gasto]
+VAR ValorReferencia =
+    SWITCH(
+        TRUE(),
+        ISINSCOPE(dim_instituicao[nome_instituicao]), 
+            CALCULATE([Total_Gasto], ALLSELECTED(dim_instituicao[nome_instituicao])),
+        ISINSCOPE(dim_instituicao[municipio_instituicao]), 
+            CALCULATE([Total_Gasto], ALLSELECTED(dim_instituicao[municipio_instituicao])),
+        ISINSCOPE(dim_instituicao[uf]), 
+            CALCULATE([Total_Gasto], ALLSELECTED(dim_instituicao[uf])),
+        CALCULATE([Total_Gasto], ALLSELECTED(dim_instituicao))
+    )
+RETURN
+DIVIDE(ValorAtual, ValorReferencia)
+
+
+Diferenca_Pct_Judicial_Administrativa = 
+DIVIDE(
+    [Preco_Medio_Judicial] - [Preco_Medio_Administrativa],
+    [Preco_Medio_Administrativa],
+    0
+)
+
+
+Faixa_Dispersao_Preco_Geral = 
+IF(
+    HASONEVALUE(fato_compras[faixa_dispersao_preco]),
+    VALUES(fato_compras[faixa_dispersao_preco]),
+    "Múltiplas Faixas"
+)
+
+
+Gasto_Medio_por_Instituicao = 
+DIVIDE(
+    [Total_Gasto], 
+    [Total_Instituicoes], 
+    0
+)
+
+
+Market_Share_Top5_Fornecedores = 
+VAR Top5 = 
+    TOPN(5, VALUES(fato_compras[sk_fornecedor]), CALCULATE([Total_Gasto]))
+VAR GastoTop5 = 
+    CALCULATE([Total_Gasto], Top5)
+RETURN
+DIVIDE(GastoTop5, [Total_Gasto], 0)
+
+
+Modalidade_Mais_Utilizada = 
+CALCULATE(
+    SELECTEDVALUE(fato_compras[modalidade_compra]),
+    TOPN(1, VALUES(fato_compras[modalidade_compra]), CALCULATE([Total_Gasto]))
+)
+
+
+Pct_Gasto_Judicial = 
+DIVIDE(
+    CALCULATE([Total_Gasto], fato_compras[tipo_compra] = "JUDICIAL"),
+    [Total_Gasto],
+    0
+)
+
+
+Preco_Maximo = MAX(fato_compras[preco_unitario])
+
+
+Preco_Medio_Administrativa = 
+CALCULATE(
+    [Preco_Medio_Ponderado],
+    fato_compras[tipo_compra] = "ADMINISTRATIVA"
+)
+
+
+Preco_Medio_Judicial = 
+CALCULATE(
+    [Preco_Medio_Ponderado],
+    fato_compras[tipo_compra] = "JUDICIAL"
+)
+
+
+Preco_Medio_Ponderado = 
+DIVIDE(
+    [Total_Gasto], 
+    [Total_Qtd_Itens], 
+    0
+)
+
+
+Preco_Minimo = MIN(fato_compras[preco_unitario])
+
+
+Preco_Unitario_Mediana = MEDIAN(fato_compras[preco_unitario])
+
+
+Prod_Coeficiente_Variacao = AVERAGE(fato_compras[coeficiente_variacao])
+
+
+Prod_Preco_Maximo_Padrao = 
+CALCULATE(
+    MAX(fato_compras[preco_unitario]),
+    REMOVEFILTERS(fato_compras[flag_qualidade_dado])
+)
+
+
+Prod_Preco_Mediano_Padrao = 
+CALCULATE(
+    MEDIAN(fato_compras[preco_unitario]),
+    REMOVEFILTERS(fato_compras[flag_qualidade_dado])
+)
+
+
+Prod_Preco_Minimo_Padrao = 
+CALCULATE(
+    MIN(fato_compras[preco_unitario]),
+    REMOVEFILTERS(fato_compras[flag_qualidade_dado])
+)
+
+
+Produtos_Fornecedor_Unico = 
+CALCULATE(
+    DISTINCTCOUNT(fato_compras[sk_produto]),
+    FILTER(
+        VALUES(fato_compras[sk_produto]),
+        [Total_Fornecedores] = 1
+    )
+)
+
+
+Qtd_Compras_Dispensa = 
+CALCULATE(
+    [Total_Transacoes],
+    fato_compras[modalidade_compra] = "Dispensa de Licitação"
+)
+
+
+Qtd. Transações Suspeitas = COALESCE(
+                                CALCULATE(COUNTROWS(fato_compras), fato_compras[flag_qualidade_dado] <> "Válido"),
+                                0
+)
+
+
+Tem_Ambos_Tipos = 
+VAR TemAdm = CALCULATE(COUNTROWS(fato_compras), fato_compras[tipo_compra] = "ADMINISTRATIVA") > 0
+VAR TemJud = CALCULATE(COUNTROWS(fato_compras), fato_compras[tipo_compra] = "JUDICIAL") > 0
+RETURN
+IF(TemAdm && TemJud, 1, 0)
+
+Ticket_Medio = 
+DIVIDE(
+    [Total_Gasto], 
+    [Total_Transacoes], 
+    0
+)
+
+
+Total_Fabricantes = DISTINCTCOUNT(fato_compras[sk_fabricante])
+
+
+Total_Fornecedores = DISTINCTCOUNT(fato_compras[sk_fornecedor])
+
+
+Total_Gasto = SUM(fato_compras[preco_total])
+
+
+Total_Instituicoes = DISTINCTCOUNT(fato_compras[sk_instituicao])
+
+
+Total_Produtos = DISTINCTCOUNT(fato_compras[sk_produto])
+
+
+Total_Qtd_Itens = SUM(fato_compras[qtd_itens_comprados])
+
+
+Total_Transacoes = COUNTROWS(fato_compras)
+
+
+Variacao_Preco_Percentual = 
+VAR _Min = [Preco_Minimo]
+VAR _Max = [Preco_Maximo]
+RETURN
+DIVIDE(_Max - _Min, _Min, 0)
+
+```
 
 <br>
 
